@@ -5,6 +5,8 @@ on:
   pull_request:
 
 jobs:
+  # The API shares the data layer and database in client/, so it needs the
+  # whole checkout but only the server's dependencies.
   api:
     runs-on: ubuntu-latest
     defaults:

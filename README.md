@@ -7,7 +7,7 @@ dua shows the Arabic text, a transliteration and a translation in English or
 Bangla, with its hadith or Qur'an reference and recitation audio. You can
 search, bookmark and adjust the reader to your preferences.
 
-**Next.js 16 · React 19 · Tailwind CSS 4 · Express 5 · SQLite (better-sqlite3)**
+**Next.js 16 · React 19 · Tailwind CSS 4 · SQLite (better-sqlite3) · Express 5**
 
 ![Desktop, light mode](docs/desktop.png)
 
@@ -45,51 +45,70 @@ search, bookmark and adjust the reader to your preferences.
 
 ```mermaid
 flowchart LR
-  B[Browser] -->|pages| N[Next.js<br/>server components]
-  B -->|/api/* search, bookmarks| N
-  N -->|rewrite /api/* + server fetch| E[Express API :4000]
-  E --> D[(SQLite<br/>read-only)]
+  B[Browser] -->|pre-rendered pages| N[Next.js app]
+  B -->|/api/search, /api/duas| N
+  N --> R[shared data layer<br/>client/lib/data]
+  E[Express API<br/>optional, :4000] --> R
+  R --> D[(SQLite<br/>read-only)]
 ```
 
-- Pages are **server-rendered**. The Next.js server fetches the data from the
-  API, so a page arrives with its content already in it.
-- The browser only calls the API for search and bookmarks, and it does so
-  through Next's `/api/*` rewrite. That means the browser never needs CORS
-  and never sees the API's address.
-- Reader preferences are applied as `data-*` attributes and CSS variables on
-  `<html>`. The dua cards render both languages and both scripts, and CSS
-  shows the selected ones. This keeps the cards server components and avoids
-  a hydration flash when the page loads.
+- **One deployable app.** The Next.js app reads the bundled SQLite database
+  itself, so it runs on Vercel or any Node host with nothing else to set up.
+- **Pages are static.** All 10 category pages are pre-rendered at build time
+  from the database. Unknown categories return a real 404.
+- **The API is built in.** Next.js route handlers under `/api` serve search,
+  bookmarks and the rest of the REST API. Responses carry CDN cache headers,
+  since the data only changes on redeploy.
+- **The Express server is optional.** `server/` runs the same API as a
+  standalone service. It reuses the Next app's data layer, so the validation
+  and queries exist in one place.
+- **Settings apply before the first paint.** Reader preferences are set as
+  `data-*` attributes and CSS variables on `<html>`. The dua cards render
+  both languages and both scripts, and CSS shows the selected ones. This
+  keeps the cards server components and avoids a hydration flash.
 
 ## Getting started
 
 Requires Node 20.9 or later.
 
 ```bash
-npm run setup     # installs root, server and client dependencies
-npm run dev       # API on http://localhost:4000, web app on http://localhost:3000
+npm run setup     # installs root, client and server dependencies
+npm run dev       # web app + API on http://localhost:3000
 ```
 
 Other scripts:
 
 ```bash
+npm run build     # production build (pre-renders every category)
+npm start         # serve the production build
 npm test          # API test suite
-npm run build     # production build of the client
-npm start         # run the API and the built client
+npm run dev:api   # optional standalone Express API on http://localhost:4000
 ```
+
+## Deploying to Vercel
+
+1. On [vercel.com/new](https://vercel.com/new), import this repository.
+2. Set **Root Directory** to `client`. Vercel detects Next.js and needs no
+   other settings or environment variables.
+3. Deploy. Every push to `main` redeploys.
+
+The database file is shipped with the API functions through
+`outputFileTracingIncludes` in `client/next.config.mjs`. `better-sqlite3`
+comes with a prebuilt Linux binary, so nothing is compiled during the build.
 
 ### Configuration
 
-| Variable      | Used by | Default                           | Purpose                                   |
-| ------------- | ------- | --------------------------------- | ----------------------------------------- |
-| `API_URL`     | client  | `http://localhost:4000`           | Where Next.js fetches and proxies the API |
-| `PORT`        | server  | `4000`                            | API port                                  |
-| `CORS_ORIGIN` | server  | `*`                               | Comma-separated allowed origins           |
-| `DB_PATH`     | server  | `server/database/dua_main.sqlite` | Alternative database file                 |
+| Variable      | Used by        | Default                       | Purpose                         |
+| ------------- | -------------- | ----------------------------- | ------------------------------- |
+| `DB_PATH`     | client, server | `client/data/dua_main.sqlite` | Alternative database file       |
+| `PORT`        | server         | `4000`                        | Express API port                |
+| `CORS_ORIGIN` | server         | `*`                           | Comma-separated allowed origins |
 
 ## API
 
-All responses are JSON. The dataset is static, so responses are cacheable.
+The same endpoints are served by the Next.js app (on port 3000, or your
+Vercel URL) and by the optional Express server. All responses are JSON and
+cacheable.
 
 | Endpoint                  | Returns                                                                 |
 | ------------------------- | ----------------------------------------------------------------------- |
@@ -98,7 +117,7 @@ All responses are JSON. The dataset is static, so responses are cacheable.
 | `GET /api/duas/:id`       | One dua                                                                 |
 | `GET /api/duas?ids=1,2,3` | Several duas, in the order requested (up to 100)                        |
 | `GET /api/search?q=…`     | Up to 20 matches, title matches first (`q` needs at least 2 characters) |
-| `GET /health`             | `{ "ok": true }`                                                        |
+| `GET /api/health`         | `{ "ok": true }` (`/health` on the Express server)                      |
 
 A dua looks like this:
 
@@ -147,19 +166,20 @@ handles:
 ## Project structure
 
 ```
-├── client/                      Next.js app (App Router)
+├── client/                      Next.js app (deploy this)
 │   ├── app/
 │   │   ├── (reader)/            shared layout: icon rail, categories, settings
-│   │   │   ├── duas/[categoryId]/
+│   │   │   ├── duas/[categoryId]/   pre-rendered category pages
 │   │   │   └── bookmarks/
+│   │   ├── api/                 route handlers: categories, duas, search, health
 │   │   ├── layout.jsx           fonts + pre-paint settings script
 │   │   └── globals.css          theme tokens, reader CSS
 │   ├── components/              DuaCard, CategoryPanel, SearchBox, SettingsPanel, …
-│   └── lib/                     API client, settings & bookmark stores
-├── server/                      Express API
-│   ├── src/{app,repository,db,index}.js
-│   ├── test/api.test.js
-│   └── database/dua_main.sqlite
+│   ├── data/dua_main.sqlite     the dataset
+│   └── lib/
+│       ├── data/                repository, endpoint validation, DB access (shared with server/)
+│       └── use*.js, settings.js settings & bookmark stores
+├── server/                      optional standalone Express API + tests
 └── docs/                        screenshots
 ```
 
@@ -179,7 +199,7 @@ work.
 
 ## Credits
 
-The dua content in `server/database` comes from the database supplied with
+The dua content in `client/data` comes from the database supplied with
 the original assignment. That includes the Arabic text, translations,
 transliterations, references and the audio links hosted on ihadis.com. All
 content belongs to its original publishers. This is a non-commercial

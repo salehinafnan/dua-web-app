@@ -2,17 +2,28 @@ import { notFound } from "next/navigation";
 import DuaCard from "@/components/DuaCard";
 import ScrollToHash from "@/components/ScrollToHash";
 import T, { ui } from "@/components/T";
-import { getCategory } from "@/lib/api";
+import { getRepository } from "@/lib/data";
+
+// Every category is pre-rendered at build time; anything else is a 404.
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return getRepository()
+    .listCategories()
+    .map((c) => ({ categoryId: String(c.id) }));
+}
 
 export async function generateMetadata({ params }) {
   const { categoryId } = await params;
-  const category = await getCategory(categoryId);
+  const category = getRepository()
+    .listCategories()
+    .find((c) => String(c.id) === categoryId);
   return { title: category ? category.name.en : "Category not found" };
 }
 
 export default async function CategoryPage({ params }) {
   const { categoryId } = await params;
-  const category = await getCategory(categoryId);
+  const category = getRepository().getCategory(Number(categoryId));
   if (!category) notFound();
 
   let n = 0;
