@@ -1,25 +1,23 @@
 {
-  "name": "dua_ruqyah_test_(copy)",
-  "version": "0.1.0",
+  "name": "dua-web-client",
+  "version": "2.0.0",
   "private": true,
-  "dependencies": {
-    "axios": "^1.6.8",
-    "http-proxy-middleware": "^2.0.6",
-    "isomorphic-unfetch": "^4.0.2",
-    "next": "^13.2.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.2.1"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.8",
-    "postcss": "^8.4.16",
-    "tailwindcss": "^3.1.8"
-  },
   "scripts": {
     "dev": "next dev",
-    "build": "next build && next export -o build/",
-    "start": "next start",
-    "lint": "next lint"
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/amiri": "^5.3.0",
+    "@fontsource/hind-siliguri": "^5.3.0",
+    "next": "^16.3.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-icons": "^5.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "tailwindcss": "^4.3.3"
   }
 }

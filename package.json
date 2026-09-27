@@ -1,0 +1,17 @@
+{
+  "name": "dua-web-app",
+  "private": true,
+  "description": "Dua reader: Next.js client + Express/SQLite API.",
+  "scripts": {
+    "setup": "npm install && npm --prefix server install && npm --prefix client install",
+    "dev": "concurrently -k -n api,web -c green,cyan \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "build": "npm --prefix client run build",
+    "start": "concurrently -k -n api,web -c green,cyan \"npm --prefix server start\" \"npm --prefix client start\"",
+    "test": "npm --prefix server test",
+    "format": "prettier --write client/app client/components client/lib server/src server/test"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5",
+    "prettier": "^3.9.9"
+  }
+}

@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-muted: #f3f4f6;
+  --line: #e2e2e2;
+  --ink: #393939;
+  --ink-soft: #484848;
+  --muted: #7e7e7e;
+  --brand: #1fa45b;
+  --brand-strong: #188a4b;
+  --brand-tint: #e8f0f5;
+  --arabic-size: 28px;
+  --text-size: 16px;
+}
+
+.dark {
+  --bg: #0e1412;
+  --surface: #161d1b;
+  --surface-muted: #1d2623;
+  --line: #2a3431;
+  --ink: #e6e9e8;
+  --ink-soft: #c9cfcd;
+  --muted: #8f9a96;
+  --brand: #38bd75;
+  --brand-strong: #52cf8a;
+  --brand-tint: #1c2b26;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-tint: var(--brand-tint);
+  --font-sans:
+    "Inter Variable", "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: "Amiri", "Noto Naskh Arabic", serif;
+}
+
+html {
+  scroll-padding-top: 1.5rem;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+:lang(bn) {
+  font-family: "Hind Siliguri", var(--font-sans);
+}
+
+/* Reader settings are applied as data attributes on <html> (see layout.jsx),
+   so server-rendered content switches language/script with no hydration. */
+html[data-lang="bn"] .i18n-en,
+html:not([data-lang="bn"]) .i18n-bn,
+html[data-script="indopak"] .script-uthmani,
+html:not([data-script="indopak"]) .script-indopak,
+html[data-transliteration="off"] .transliteration,
+html[data-translation="off"] .translation {
+  display: none;
+}
+
+.arabic {
+  font-family: var(--font-arabic);
+  font-size: var(--arabic-size);
+  line-height: 2.1;
+}
+
+.reading {
+  font-size: var(--text-size);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
