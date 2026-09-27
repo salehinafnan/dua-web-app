@@ -1,6 +1,6 @@
 # Dua Web App
 
-[![ci](https://github.com/salehinafnan/dua-web-app-front-end/actions/workflows/ci.yml/badge.svg)](https://github.com/salehinafnan/dua-web-app-front-end/actions/workflows/ci.yml)
+[![ci](https://github.com/salehinafnan/dua-web-app/actions/workflows/ci.yml/badge.svg)](https://github.com/salehinafnan/dua-web-app/actions/workflows/ci.yml)
 
 A full-stack app for reading duas (Islamic supplications) by category. Each
 dua shows the Arabic text, a transliteration and a translation in English or
