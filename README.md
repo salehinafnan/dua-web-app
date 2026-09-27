@@ -7,6 +7,8 @@ dua shows the Arabic text, a transliteration and a translation in English or
 Bangla, with its hadith or Qur'an reference and recitation audio. You can
 search, bookmark and adjust the reader to your preferences.
 
+**Live:** [dua-web-app-afnan.vercel.app](https://dua-web-app-afnan.vercel.app)
+
 **Next.js 16 · React 19 · Tailwind CSS 4 · SQLite (better-sqlite3) · Express 5**
 
 ![Desktop, light mode](docs/desktop.png)
@@ -52,13 +54,16 @@ flowchart LR
   R --> D[(SQLite<br/>read-only)]
 ```
 
-- **One deployable app.** The Next.js app reads the bundled SQLite database
-  itself, so it runs on Vercel or any Node host with nothing else to set up.
+- **Self-contained.** The Next.js app reads the bundled SQLite database
+  itself. It needs no separate backend, database server or environment
+  variables.
 - **Pages are static.** All 10 category pages are pre-rendered at build time
   from the database. Unknown categories return a real 404.
 - **The API is built in.** Next.js route handlers under `/api` serve search,
-  bookmarks and the rest of the REST API. Responses carry CDN cache headers,
-  since the data only changes on redeploy.
+  bookmarks and the rest of the REST API. The database file is bundled with
+  these handlers through `outputFileTracingIncludes` in
+  `client/next.config.mjs`. Responses carry cache headers, since the data
+  only changes when the app is rebuilt.
 - **The Express server is optional.** `server/` runs the same API as a
   standalone service. It reuses the Next app's data layer, so the validation
   and queries exist in one place.
@@ -85,17 +90,6 @@ npm test          # API test suite
 npm run dev:api   # optional standalone Express API on http://localhost:4000
 ```
 
-## Deploying to Vercel
-
-1. On [vercel.com/new](https://vercel.com/new), import this repository.
-2. Set **Root Directory** to `client`. Vercel detects Next.js and needs no
-   other settings or environment variables.
-3. Deploy. Every push to `main` redeploys.
-
-The database file is shipped with the API functions through
-`outputFileTracingIncludes` in `client/next.config.mjs`. `better-sqlite3`
-comes with a prebuilt Linux binary, so nothing is compiled during the build.
-
 ### Configuration
 
 | Variable      | Used by        | Default                       | Purpose                         |
@@ -106,8 +100,9 @@ comes with a prebuilt Linux binary, so nothing is compiled during the build.
 
 ## API
 
-The same endpoints are served by the Next.js app (on port 3000, or your
-Vercel URL) and by the optional Express server. All responses are JSON and
+The same endpoints are served by the Next.js app (on port 3000 locally, and
+on the [live site](https://dua-web-app-afnan.vercel.app/api/categories)) and
+by the optional Express server. All responses are JSON and
 cacheable.
 
 | Endpoint                  | Returns                                                                 |
@@ -166,7 +161,7 @@ handles:
 ## Project structure
 
 ```
-├── client/                      Next.js app (deploy this)
+├── client/                      Next.js app (web + API)
 │   ├── app/
 │   │   ├── (reader)/            shared layout: icon rail, categories, settings
 │   │   │   ├── duas/[categoryId]/   pre-rendered category pages
